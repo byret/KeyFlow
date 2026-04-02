@@ -1,0 +1,1834 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>KeyFlow</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap");
+        :root {
+            --bg: #040814;
+            --bg-2: #091225;
+            --bg-3: #0d1833;
+            --panel: rgba(10, 18, 38, 0.72);
+            --panel-strong: rgba(12, 22, 44, 0.88);
+            --panel-2: rgba(20, 33, 63, 0.88);
+            --text: #f4f8ff;
+            --muted: #95a9cb;
+            --line: rgba(148, 173, 255, 0.16);
+            --line-strong: rgba(155, 188, 255, 0.28);
+            --accent: #9b5cff;
+            --accent-2: #24e1ff;
+            --accent-3: #4f7cff;
+            --accent-soft: rgba(155, 92, 255, 0.18);
+            --accent-soft-2: rgba(36, 225, 255, 0.16);
+            --danger: #ff5d87;
+            --success: #41e2a6;
+            --shadow-lg: 0 35px 120px rgba(2, 6, 23, 0.58);
+            --shadow-md: 0 20px 70px rgba(2, 8, 23, 0.36);
+            --shadow-neon: 0 0 0 1px rgba(255,255,255,0.03), 0 0 28px rgba(79, 124, 255, 0.08), 0 0 48px rgba(36, 225, 255, 0.05);
+        }
+        * { box-sizing: border-box; }
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            margin: 0;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at 15% 10%, rgba(36, 225, 255, 0.14), transparent 22%),
+                radial-gradient(circle at 85% 8%, rgba(155, 92, 255, 0.16), transparent 24%),
+                radial-gradient(circle at 50% 120%, rgba(79, 124, 255, 0.12), transparent 36%),
+                linear-gradient(180deg, var(--bg-3), var(--bg-2) 35%, var(--bg));
+            color: var(--text);
+            min-height: 100vh;
+            letter-spacing: -0.01em;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background:
+                linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+            background-size: 30px 30px;
+            mask-image: radial-gradient(circle at center, rgba(0,0,0,0.9), rgba(0,0,0,0.18));
+            opacity: .18;
+        }
+        .page {
+            position: relative;
+            max-width: 1380px;
+            margin: 0 auto;
+            padding: 34px 28px 46px;
+        }
+        .page::before,
+        .page::after {
+            content: '';
+            position: fixed;
+            width: 520px;
+            height: 520px;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: .14;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .page::before {
+            left: -180px;
+            top: 180px;
+            background: radial-gradient(circle, rgba(36, 225, 255, 0.34), transparent 70%);
+        }
+        .page::after {
+            right: -170px;
+            top: 40px;
+            background: radial-gradient(circle, rgba(155, 92, 255, 0.34), transparent 72%);
+        }
+        .hero {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 24px;
+            padding: 30px 32px;
+            border: 1px solid rgba(148, 173, 255, 0.16);
+            border-radius: 30px;
+            background:
+                linear-gradient(135deg, rgba(255,255,255,0.09), rgba(255,255,255,0.015) 42%, rgba(255,255,255,0.03)),
+                radial-gradient(circle at top right, rgba(36, 225, 255, 0.18), transparent 32%),
+                radial-gradient(circle at 18% 0%, rgba(155, 92, 255, 0.24), transparent 36%),
+                rgba(9, 16, 33, 0.78);
+            box-shadow: var(--shadow-lg), var(--shadow-neon);
+            backdrop-filter: blur(20px) saturate(1.2);
+            -webkit-backdrop-filter: blur(20px) saturate(1.2);
+            overflow: hidden;
+        }
+        .hero::before,
+        .hero::after {
+            content: '';
+            position: absolute;
+            pointer-events: none;
+        }
+        .hero::before {
+            inset: 0;
+            background:
+                linear-gradient(120deg, rgba(255,255,255,0.12), transparent 18%, transparent 82%, rgba(255,255,255,0.08)),
+                linear-gradient(180deg, rgba(255,255,255,0.04), transparent 40%);
+            opacity: .62;
+        }
+        .hero::after {
+            right: 42px;
+            top: -24px;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(36, 225, 255, 0.22), transparent 64%);
+            filter: blur(14px);
+        }
+        .hero h1 {
+            position: relative;
+            z-index: 1;
+            margin: 0 0 10px;
+            font-family: "Space Grotesk", Inter, sans-serif;
+            font-size: 46px;
+            line-height: 1;
+            letter-spacing: -0.05em;
+            text-shadow: 0 0 18px rgba(36, 225, 255, 0.06);
+        }
+        .hero p {
+            position: relative;
+            z-index: 1;
+            margin: 0;
+            max-width: 780px;
+            color: #bcc9e6;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+        .card {
+            position: relative;
+            z-index: 1;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015) 12%, rgba(255,255,255,0.025)),
+                linear-gradient(180deg, rgba(10, 19, 38, 0.92), rgba(7, 14, 28, 0.82));
+            border: 1px solid rgba(148, 173, 255, 0.14);
+            border-radius: 26px;
+            padding: 24px;
+            box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.05);
+            backdrop-filter: blur(18px) saturate(1.14);
+            -webkit-backdrop-filter: blur(18px) saturate(1.14);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(155, 92, 255, 0.018), transparent 38%, rgba(36, 225, 255, 0.015) 80%, transparent);
+            pointer-events: none;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1.2fr .8fr;
+            gap: 20px;
+        }
+        .upload-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+        .upload-card {
+            position: relative;
+            border: 1px solid rgba(123, 149, 255, 0.20);
+            border-radius: 22px;
+            padding: 20px;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
+                linear-gradient(135deg, rgba(79,124,255,0.08), rgba(155,92,255,0.08) 45%, rgba(36,225,255,0.06));
+            min-height: 154px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: border-color .24s ease, background .24s ease, box-shadow .24s ease, transform .24s ease, filter .24s ease;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+        .upload-card::before,
+        .upload-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+        .upload-card::before {
+            inset: -1px;
+            background: linear-gradient(135deg, rgba(155,92,255,0.22), rgba(79,124,255,0.12), rgba(36,225,255,0.18));
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            -webkit-mask-composite: xor;
+            padding: 1px;
+            opacity: .7;
+        }
+        .upload-card::after {
+            background: linear-gradient(135deg, rgba(255,255,255,0.10), transparent 28%, transparent 65%, rgba(36,225,255,0.08));
+            opacity: .95;
+        }
+        .upload-card:hover {
+            border-color: rgba(36, 225, 255, 0.34);
+            background:
+                linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.025)),
+                linear-gradient(135deg, rgba(155,92,255,0.11), rgba(79,124,255,0.10) 40%, rgba(36,225,255,0.09));
+            box-shadow: 0 24px 65px rgba(2, 8, 23, 0.34), 0 0 48px rgba(36,225,255,0.08), inset 0 1px 0 rgba(255,255,255,0.06);
+            filter: saturate(1.02);
+        }
+        .upload-card.active {
+            border-color: rgba(65,226,166,.44);
+            background:
+                linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.025)),
+                linear-gradient(135deg, rgba(65,226,166,.13), rgba(36,225,255,.08) 50%, rgba(79,124,255,.07));
+            box-shadow: 0 24px 65px rgba(2, 8, 23, 0.36), 0 0 42px rgba(65,226,166,.11);
+        }
+        .upload-card:focus-visible {
+            outline: 2px solid rgba(167,139,250,.65);
+            outline-offset: 2px;
+        }
+        .upload-title {
+            position: relative;
+            z-index: 1;
+            font-weight: 800;
+            margin: 0;
+            font-size: 12px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: #c2cffa;
+        }
+        .hidden-file-input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .file-dropzone {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            min-height: 72px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 8px;
+        }
+        .file-main {
+            font-weight: 800;
+            font-size: 20px;
+            line-height: 1.25;
+            word-break: break-word;
+        }
+        .file-main.placeholder {
+            color: var(--text);
+        }
+        .file-main.selected {
+            color: #86efac;
+        }
+        .file-sub {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .hint, .muted { color: var(--muted); font-size: 14px; }
+        h2 {
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: -0.03em;
+        }
+        label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #f3f7ff;
+            letter-spacing: -0.01em;
+        }
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px 16px;
+        }
+        .field { margin-bottom: 18px; }
+        input[type="text"], select, textarea {
+            width: 100%;
+            border-radius: 16px;
+            border: 1px solid rgba(148, 173, 255, 0.16);
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)),
+                linear-gradient(180deg, rgba(18, 31, 59, 0.98), rgba(12, 24, 48, 0.98));
+            color: var(--text);
+            padding: 13px 15px;
+            font: inherit;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 8px 24px rgba(2,8,23,0.18);
+            transition: border-color .2s ease, box-shadow .2s ease, background .2s ease, filter .2s ease;
+        }
+        input[type="text"]::placeholder, textarea::placeholder {
+            color: #7f95ba;
+        }
+        input[type="text"]:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: rgba(36, 225, 255, 0.42);
+            box-shadow: 0 0 0 4px rgba(36, 225, 255, 0.10), 0 0 34px rgba(79,124,255,0.12), inset 0 1px 0 rgba(255,255,255,0.05);
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.025)),
+                linear-gradient(180deg, rgba(22, 38, 72, 1), rgba(14, 27, 52, 1));
+        }
+        textarea {
+            min-height: 180px;
+            resize: none;
+        }
+        .field .hint {
+            margin-top: 12px;
+            line-height: 1.55;
+        }
+        .checks {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-top: 10px;
+            padding-top: 4px;
+        }
+        .check {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            color: var(--text);
+            line-height: 1.45;
+        }
+        .check input {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            accent-color: var(--accent-2);
+            flex: 0 0 auto;
+        }
+        .button-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+        button, .link-button {
+            position: relative;
+            border: none;
+            border-radius: 16px;
+            padding: 12px 18px;
+            font-weight: 800;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font: inherit;
+            letter-spacing: -0.01em;
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease, filter .18s ease;
+        }
+        button:hover, .link-button:hover {
+            transform: translateY(-0.5px);
+            filter: saturate(1.02);
+        }
+        .primary {
+            color: white;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.15), rgba(255,255,255,0.04)),
+                linear-gradient(135deg, #a05fff, #6a7eff 46%, #24e1ff);
+            box-shadow: 0 16px 32px rgba(74, 92, 218, 0.24), 0 0 24px rgba(36,225,255,0.06), inset 0 1px 0 rgba(255,255,255,0.18);
+        }
+        .secondary {
+            color: var(--text);
+            background:
+                linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)),
+                linear-gradient(180deg, rgba(19, 32, 60, 0.9), rgba(12, 23, 44, 0.88));
+            border: 1px solid rgba(148, 173, 255, 0.14);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 12px 26px rgba(2,8,23,0.18);
+        }
+        .danger {
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04)),
+                linear-gradient(135deg, #ff7a95, #ff4d6d);
+            color: white;
+            box-shadow: 0 16px 38px rgba(127, 29, 29, 0.30), inset 0 1px 0 rgba(255,255,255,0.16);
+        }
+        .error-msg { color: #fca5a5; margin-bottom: 12px; }
+        .stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+        .muted { color: var(--muted); }
+        .stat {
+            background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 18px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: border-color .22s ease, box-shadow .22s ease, background .22s ease;
+        }
+        .stat::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), transparent 46%, rgba(34, 211, 238, 0.08));
+            opacity: 0;
+            transition: opacity .22s ease;
+            pointer-events: none;
+        }
+        .stat:hover {
+            border-color: rgba(34, 211, 238, 0.28);
+            box-shadow: 0 14px 34px rgba(2, 8, 23, 0.2);
+        }
+        .stat:hover::after,
+        .stat.active::after { opacity: 1; }
+        .stat.active {
+            border-color: rgba(139, 92, 246, 0.42);
+            background: linear-gradient(180deg, rgba(139, 92, 246, 0.09), rgba(34, 211, 238, 0.05));
+        }
+        .stat-value { font-size: 30px; font-weight: 800; letter-spacing: -0.04em; }
+        .stat-label { color: var(--muted); font-size: 13px; margin-top: 4px; }
+        .section-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .section-head h2 { margin: 0 0 6px; }
+        .export-box {
+            display: grid;
+            grid-template-columns: minmax(200px, 280px) auto;
+            gap: 12px;
+            align-items: end;
+        }
+        .export-box.diff-export {
+            grid-template-columns: minmax(180px, 240px) minmax(200px, 280px) auto;
+        }
+        .mini-field { min-width: 0; }
+        .format-desc { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.45; }
+        .table-wrap {
+            max-height: 420px;
+            overflow: auto;
+            border: 1px solid rgba(148, 173, 255, 0.14);
+            border-radius: 20px;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015)),
+                rgba(5, 12, 24, 0.34);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 14px 36px rgba(2,8,23,0.18);
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 13px 14px; border-bottom: 1px solid rgba(173, 196, 255, 0.08); vertical-align: top; }
+        th {
+            position: sticky;
+            top: 0;
+            background: rgba(16, 29, 52, 0.96);
+            backdrop-filter: blur(12px);
+            text-align: left;
+            z-index: 1;
+            color: #dce7ff;
+        }
+        td pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-family: inherit; }
+        .severity-LOW { color: #93c5fd; font-weight: 700; }
+        .severity-MEDIUM { color: #fcd34d; font-weight: 700; }
+        .severity-HIGH { color: #fca5a5; font-weight: 700; }
+        .top-actions { display:flex; justify-content:flex-end; gap:12px; margin-bottom: 20px; }
+        .tips ul { margin: 22px 0 0 20px; color: var(--muted); padding-left: 18px; }
+        .tips li { margin-bottom: 12px; line-height: 1.6; }
+        .hint-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .badge {
+            background: linear-gradient(180deg, rgba(139, 92, 246, 0.10), rgba(34, 211, 238, 0.06));
+            border:1px solid rgba(173, 196, 255, 0.12);
+            color: #d9e3fb;
+            border-radius:999px;
+            padding:7px 11px;
+            font-size:12px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+        .tips .hint-row {
+            margin-top: 20px;
+            margin-bottom: 12px;
+            padding-top: 4px;
+        }
+        .tips h2 {
+            margin-bottom: 4px;
+        }
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .results-header .muted { margin: 0; }
+        .section-card { display: none; }
+        .section-card.active { display: block; }
+        .diff-preview-table { display: none; }
+        .diff-preview-table.active { display: block; }
+        .section-switcher {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 16px 0 0;
+        }
+        .switch-button {
+            background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.035));
+            border: 1px solid var(--line);
+            color: var(--text);
+            border-radius: 999px;
+            padding: 10px 14px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+        }
+        .switch-button.active {
+            border-color: rgba(34, 211, 238, 0.30);
+            background: linear-gradient(180deg, rgba(139,92,246,.20), rgba(34,211,238,.14));
+            box-shadow: 0 10px 24px rgba(2,8,23,.18), inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+        .code-hint {
+            display: block;
+            white-space: pre-wrap;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            margin-top: 8px;
+            color: #cbd5e1;
+        }
+
+        .rules-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .rules-toolbar {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .rules-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .ghost-button {
+            border: 1px solid rgba(173, 196, 255, 0.12);
+            background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+            color: var(--text);
+            border-radius: 14px;
+            padding: 10px 12px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+        }
+        .merged-actions {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+        .merged-actions .mini-field {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            min-width: 320px;
+            margin-right: auto;
+        }
+        .merged-action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: stretch;
+            margin-top: 24px;
+        }
+        .merged-action-buttons .secondary {
+            min-width: 220px;
+        }
+        .merged-actions .mini-field label {
+            margin-bottom: 6px;
+        }
+        .merged-table td {
+            vertical-align: top;
+        }
+        .merged-table td:last-child {
+            width: 62%;
+        }
+        .editable-shell:hover {
+            border-color: rgba(167,139,250,.35);
+            background: rgba(167,139,250,.05);
+        }
+        .editable-shell.editing {
+            border-color: rgba(167,139,250,.75);
+            background: transparent;
+            box-shadow: none;
+            padding: 0;
+        }
+        .editable-display {
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.5;
+            min-height: 24px;
+        }
+        .editable-placeholder {
+            color: var(--muted);
+        }
+        .editable-input {
+            width: 100%;
+            border-radius: 18px;
+            border: 1px solid rgba(167,139,250,.42);
+            background: linear-gradient(180deg, rgba(20, 31, 58, 0.96), rgba(12, 22, 43, 0.94));
+            color: var(--text);
+            padding: 18px 20px;
+            font: inherit;
+            line-height: 1.5;
+            display: none;
+            min-height: 72px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+        .editable-shell.editing .editable-input {
+            display: block;
+        }
+        .editable-shell.editing .editable-display,
+        .editable-shell.editing .editable-meta,
+        .editable-shell.editing .editable-status,
+        .editable-shell.editing .editable-diff-preview {
+            display: none;
+        }
+        .editable-meta {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 8px;
+        }
+        .subtle {
+            color: var(--muted);
+            font-size: 13px;
+        }
+        .diff-added,
+        .diff-removed {
+            display: inline;
+            padding: 1px 3px;
+            border-radius: 6px;
+        }
+        .diff-added {
+            background: linear-gradient(180deg, rgba(65,226,166,.22), rgba(65,226,166,.12));
+            color: #d1fae5;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+        }
+        .diff-removed {
+            background: linear-gradient(180deg, rgba(255,93,135,.22), rgba(255,93,135,.12));
+            color: #ffd1dd;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+        }
+        .pretty-pair {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            line-height: 1.55;
+        }
+        .pretty-line {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            padding: 8px 10px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+            border: 1px solid rgba(148,173,255,0.08);
+        }
+        .pretty-label {
+            flex: 0 0 auto;
+            min-width: 60px;
+            color: #cdd8f6;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
+            border: 1px solid rgba(148,173,255,0.10);
+        }
+        .pretty-content {
+            min-width: 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .editable-shell {
+            position: relative;
+            border: 1px solid rgba(148,173,255,0.08);
+            border-radius: 18px;
+            padding: 14px 15px;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)),
+                linear-gradient(180deg, rgba(15, 25, 47, 0.86), rgba(11, 19, 37, 0.80));
+            transition: border-color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease;
+            overflow: hidden;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 10px 28px rgba(2,8,23,0.10);
+        }
+        .editable-shell::before {
+            content: '';
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 3px;
+            background: transparent;
+            transition: background .18s ease;
+        }
+        .editable-shell.changed {
+            border-color: rgba(167,139,250,.42);
+            background: linear-gradient(180deg, rgba(124,58,237,.09), rgba(124,58,237,.04));
+            box-shadow: inset 0 0 0 1px rgba(167,139,250,.09);
+        }
+        .editable-shell.changed::before {
+            background: linear-gradient(180deg, rgba(167,139,250,.95), rgba(124,58,237,.45));
+        }
+        .editable-shell.changed-manual {
+            border-color: rgba(96,165,250,.42);
+            background: linear-gradient(180deg, rgba(59,130,246,.10), rgba(59,130,246,.04));
+            box-shadow: inset 0 0 0 1px rgba(96,165,250,.08);
+        }
+        .editable-shell.changed-manual::before {
+            background: linear-gradient(180deg, rgba(96,165,250,.95), rgba(59,130,246,.45));
+        }
+        .editable-status {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .editable-shell.changed-manual .editable-status {
+            display: flex;
+        }
+        .edit-badge {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 5px 9px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .03em;
+            text-transform: uppercase;
+            background: rgba(124,58,237,.16);
+            color: #ddd6fe;
+            border: 1px solid rgba(167,139,250,.24);
+        }
+        .editable-shell.changed-manual .edit-badge {
+            background: rgba(59,130,246,.14);
+            color: #dbeafe;
+            border-color: rgba(96,165,250,.24);
+        }
+        .editable-diff-preview {
+            display: none;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,.06);
+        }
+        .editable-shell.changed-manual:hover .editable-diff-preview,
+        .editable-shell.changed-manual:focus-within .editable-diff-preview {
+            display: block;
+        }
+        .editable-shell.changed-manual .editable-display {
+            font-weight: 600;
+        }
+        .editable-shell.changed-manual .pretty-content {
+            color: #eff6ff;
+        }
+        .merged-row.removed {
+            display: none;
+        }
+        .merged-value-head {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            justify-content: flex-end;
+            z-index: 3;
+        }
+        .row-remove-button {
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            z-index: 4;
+            padding: 0;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 173, 255, 0.18);
+            background: rgba(255,255,255,0.04);
+            color: var(--muted);
+            opacity: 0;
+            transform: scale(.96);
+            transition: opacity .16s ease, transform .16s ease, color .16s ease, border-color .16s ease, background .16s ease;
+        }
+        .editable-shell:hover .row-remove-button,
+        .editable-shell:focus-within .row-remove-button {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .row-remove-button:hover {
+            color: #ffd4de;
+            border-color: rgba(255, 93, 135, 0.34);
+            background: rgba(255, 93, 135, 0.10);
+        }
+        .ignore-terms-field textarea {
+            min-height: 88px;
+        }
+        .value-cleanup-field {
+            grid-column: 1 / -1;
+        }
+        .rule-row {
+            display: grid;
+            gap: 10px;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid rgba(148, 173, 255, 0.14);
+            border-radius: 18px;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)),
+                linear-gradient(180deg, rgba(15, 27, 52, 0.9), rgba(10, 19, 38, 0.84));
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 12px 28px rgba(2,8,23,0.12);
+        }
+        .rule-row.mode-remove {
+            grid-template-columns: 122px minmax(360px, 1fr) 42px;
+        }
+        .rule-row.mode-replace {
+            grid-template-columns: 122px minmax(260px, 1.2fr) minmax(260px, 1.2fr) 42px;
+        }
+        .rule-row input, .rule-row select {
+            min-width: 0;
+        }
+        .rule-row .replacement-cell.hidden {
+            display: none;
+        }
+        .rule-row .replacement-cell,
+        .rule-row .pattern-cell {
+            min-width: 0;
+            width: 100%;
+        }
+        .rule-row .action-cell {
+            display: flex;
+            justify-content: flex-end;
+        }
+        .rule-row .ghost-button {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            padding: 0;
+            border-radius: 999px;
+            white-space: nowrap;
+            font-size: 18px;
+            line-height: 1;
+        }
+        .rule-row .rule-pattern,
+        .rule-row .rule-replacement {
+            font-size: 14px;
+            width: 100%;
+        }
+        select option {
+            color: #10203f;
+            background: #edf4ff;
+        }
+
+
+        @keyframes floatDrift {
+            0% { transform: translate3d(0, 0, 0) scale(1); }
+            50% { transform: translate3d(18px, -24px, 0) scale(1.06); }
+            100% { transform: translate3d(-10px, 12px, 0) scale(0.98); }
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: .38; filter: blur(86px) saturate(1); }
+            50% { opacity: .58; filter: blur(104px) saturate(1.1); }
+        }
+        @keyframes heroSweep {
+            0% { transform: translateX(-120%) rotate(12deg); opacity: 0; }
+            18% { opacity: .55; }
+            48% { opacity: .28; }
+            100% { transform: translateX(180%) rotate(12deg); opacity: 0; }
+        }
+        @keyframes sheenMove {
+            0% { transform: translateX(-140%) skewX(-18deg); opacity: 0; }
+            20% { opacity: .16; }
+            40% { opacity: .28; }
+            100% { transform: translateX(240%) skewX(-18deg); opacity: 0; }
+        }
+        @keyframes borderShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .ambient-layer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+        .ambient-orb {
+            position: absolute;
+            border-radius: 999px;
+            opacity: .18;
+            filter: blur(92px);
+            mix-blend-mode: screen;
+            animation: floatDrift 18s ease-in-out infinite alternate, pulseGlow 10s ease-in-out infinite;
+        }
+        .ambient-orb.orb-1 {
+            width: 340px;
+            height: 340px;
+            top: 12%;
+            left: 8%;
+            background: radial-gradient(circle, rgba(104, 82, 255, 0.82), rgba(104, 82, 255, 0.10) 58%, transparent 72%);
+            animation-duration: 20s, 9s;
+        }
+        .ambient-orb.orb-2 {
+            width: 420px;
+            height: 420px;
+            top: 4%;
+            right: 6%;
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.80), rgba(34, 211, 238, 0.08) 54%, transparent 72%);
+            animation-duration: 22s, 12s;
+            animation-delay: -6s, -4s;
+        }
+        .ambient-orb.orb-3 {
+            width: 380px;
+            height: 380px;
+            bottom: -4%;
+            left: 28%;
+            background: radial-gradient(circle, rgba(255, 118, 173, 0.44), rgba(255, 118, 173, 0.07) 56%, transparent 72%);
+            animation-duration: 26s, 11s;
+            animation-delay: -10s, -2s;
+        }
+        .ambient-grid {
+            position: absolute;
+            inset: 0;
+            display:none;
+            background:
+                linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+            background-size: 46px 46px;
+            mask-image: radial-gradient(circle at center, rgba(0,0,0,0.85), rgba(0,0,0,0.18));
+            opacity: .10;
+        }
+        .hero {
+            isolation: isolate;
+        }
+        .hero::before {
+            opacity: .58;
+        }
+        .hero::after {
+            filter: blur(18px);
+            opacity: .9;
+        }
+        .hero .hint-row .badge {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .hero-shine {
+            position: absolute;
+            inset: -24% auto -24% -18%;
+            width: 48%;
+            pointer-events: none;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), rgba(255,255,255,0.14), rgba(36,225,255,0.12), transparent);
+            transform: skewX(-18deg);
+            filter: blur(6px);
+            animation: heroSweep 12s ease-in-out infinite;
+            z-index: 0;
+        }
+        .card,
+        .upload-card,
+        .stat,
+        .switch-button,
+        button,
+        .ghost-button,
+        .editable-shell {
+            position: relative;
+        }
+        .card::before,
+        .upload-card .gloss,
+        .stat::before,
+        button::before,
+        .ghost-button::before,
+        .switch-button::before {
+            content: '';
+            position: absolute;
+            inset: 0 auto 0 -36%;
+            width: 34%;
+            pointer-events: none;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.015), rgba(255,255,255,0.08), rgba(255,255,255,0.015), transparent);
+            transform: skewX(-18deg);
+            opacity: 0;
+        }
+        .upload-card:hover .gloss {
+            opacity: 1;
+            animation: sheenMove 1.3s ease forwards;
+        }
+        .card {
+            transition: transform .28s ease, box-shadow .28s ease, border-color .28s ease, background .28s ease;
+        }
+        .card:hover {
+            transform: none;
+            border-color: rgba(142, 170, 255, 0.16);
+            box-shadow: 0 18px 42px rgba(2,8,23,0.20), inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+        .upload-card {
+            backdrop-filter: blur(22px) saturate(1.18);
+            -webkit-backdrop-filter: blur(22px) saturate(1.18);
+        }
+        .upload-card .gloss {
+            border-radius: inherit;
+        }
+        .primary,
+        .danger {
+            overflow: hidden;
+        }
+        .primary {
+            background-size: 180% 180%, 180% 180%;
+        }
+        .section-switcher .switch-button {
+            overflow: hidden;
+        }
+        .editable-shell.changed,
+        .editable-shell.changed-manual {
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,.05), 0 18px 46px rgba(2,8,23,0.18);
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .ambient-orb,
+            .hero-shine,
+            .card::before,
+            .upload-card .gloss,
+            .stat::before,
+            button::before,
+            .ghost-button::before,
+            .switch-button::before,
+            .primary {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+
+        @media (max-width: 980px) {
+            .page { padding: 22px 16px 30px; }
+            .hero {
+                padding: 22px 20px;
+                border-radius: 24px;
+            }
+            .hero h1 { font-size: 34px; }
+            .grid, .upload-grid, .field-grid, .stats { grid-template-columns: 1fr; }
+            .export-box, .export-box.diff-export, .rule-row { grid-template-columns: 1fr; }
+            .card { padding: 20px; border-radius: 20px; }
+            .top-actions { justify-content: stretch; }
+        }
+    </style>
+</head>
+<body>
+<div class="ambient-layer" aria-hidden="true">
+    <div class="ambient-grid"></div>
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+    <div class="ambient-orb orb-3"></div>
+</div>
+<div class="page">
+    <div class="hero">
+        <div class="hero-shine"></div>
+        <h1>KeyFlow</h1>
+        <p>Compare two message files, merge them, inspect differences, and export the results in a cleaner, more readable workspace.</p>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <div th:if="${error}" class="error-msg" th:text="${error}"></div>
+
+            <form method="post" action="/compare" enctype="multipart/form-data">
+                <div class="upload-grid">
+                    <div class="upload-card" data-input-id="file1" tabindex="0" role="button" aria-label="Choose file 1" th:classappend="${storedFile1Name} != null ? ' active' : ''">
+                        <div class="upload-title">File 1</div>
+                        <div class="gloss"></div>
+                        <input id="file1" class="hidden-file-input" type="file" name="file1">
+                        <div class="file-dropzone">
+                            <div class="file-main"
+                                 id="file1Status"
+                                 th:classappend="${storedFile1Name} != null ? ' selected' : ' placeholder'"
+                                 th:text="${storedFile1Name} != null ? ${storedFile1Name} : 'Click to choose a file'">
+                                Click to choose a file
+                            </div>
+                            <div class="file-sub">Click anywhere in this block or press Enter to open the picker.</div>
+                        </div>
+                    </div>
+                    <div class="upload-card" data-input-id="file2" tabindex="0" role="button" aria-label="Choose file 2" th:classappend="${storedFile2Name} != null ? ' active' : ''">
+                        <div class="upload-title">File 2</div>
+                        <div class="gloss"></div>
+                        <input id="file2" class="hidden-file-input" type="file" name="file2">
+                        <div class="file-dropzone">
+                            <div class="file-main"
+                                 id="file2Status"
+                                 th:classappend="${storedFile2Name} != null ? ' selected' : ' placeholder'"
+                                 th:text="${storedFile2Name} != null ? ${storedFile2Name} : 'Click to choose a file'">
+                                Click to choose a file
+                            </div>
+                            <div class="file-sub">Click anywhere in this block or press Enter to open the picker.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="prefix">Prefix</label>
+                        <input id="prefix" type="text" name="prefix" th:value="${prefix}">
+                        <div class="hint">Only lines starting with this prefix are parsed.</div>
+                    </div>
+                    <div class="field">
+                        <label for="mergeStrategy">Merged result strategy</label>
+                        <select id="mergeStrategy" name="mergeStrategy">
+                            <option th:each="strategy : ${mergeStrategies}"
+                                    th:value="${strategy.name()}"
+                                    th:selected="${mergeStrategy != null and mergeStrategy.name() == strategy.name()}"
+                                    th:text="${strategy.label}">
+                            </option>
+                        </select>
+                        <div class="hint" th:each="strategy : ${mergeStrategies}" th:if="${mergeStrategy != null and mergeStrategy.name() == strategy.name()}" th:text="${strategy.description}"></div>
+                    </div>
+                    <div class="field value-cleanup-field">
+                        <label>Value cleanup rules</label>
+                        <div class="rules-panel">
+                            <div class="rules-toolbar">
+                                <div class="subtle">Add optional remove or replace rules before comparison.</div>
+                                <button class="ghost-button" type="button" onclick="addRuleRow()">+ Add rule</button>
+                            </div>
+                            <div id="rulesList" class="rules-list"></div>
+                            <textarea id="transformationRules" name="transformationRules" hidden aria-hidden="true" tabindex="-1" th:text="${transformationRules}"></textarea>
+                            <div class="hint" th:inline="none">
+                                Pattern supports regex. Remove strips matching fragments, replace swaps them with your custom text.
+                            </div>
+                            <div class="field ignore-terms-field" style="margin-bottom:0;">
+                                <label for="mergeIgnoreTerms" style="margin-top:6px;">Ignore lines containing</label>
+                                <textarea id="mergeIgnoreTerms" name="mergeIgnoreTerms" placeholder="One word or phrase per line" th:text="${mergeIgnoreTerms}"></textarea>
+                                <div class="hint">Lines containing any of these words or phrases will be skipped from both files before merge and comparison.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field compare-options-field">
+                        <label>Compare options</label>
+                        <div class="checks">
+                            <label class="check"><input type="checkbox" name="ignoreWhitespace" value="true" th:checked="${ignoreWhitespace}"> <span>Ignore whitespace when comparing</span></label>
+                            <label class="check"><input type="checkbox" name="ignoreCase" value="true" th:checked="${ignoreCase}"> <span>Ignore case when comparing</span></label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-row">
+                    <button class="primary" type="submit">Compare</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card tips">
+            <h2>Tips</h2>
+            <div class="hint-row">
+                <span class="badge">Supports key=value</span>
+                <span class="badge">Supports key&lt;tab&gt;value</span>
+                <span class="badge">Supports key value</span>
+            </div>
+            <ul>
+                <li>TXT exports use plain text with tab-separated columns.</li>
+                <li>Pretty diff mode is useful when you want to read the change instead of seeing raw columns.</li>
+                <li>Severity is higher when placeholders or important signal words change.</li>
+                <li>Regex example: <code>\\&#91;^&#93;*&#93;</code> — removes everything inside square brackets together with the brackets.</li>
+                <li>Regex example: <code>\\&#123;[^&#125;]*&#125;</code> — removes everything inside curly braces together with the braces.</li>
+                <li>Regex example: <code>\\&#123;\d+&#125;</code> — matches placeholders like {0}, {1}, {25}.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div th:if="${result != null}" class="top-actions">
+        <a class="link-button secondary" href="/download/all.zip">Download ZIP</a>
+        <form method="post" action="/clear-result">
+            <button class="danger" type="submit">Clear current result</button>
+        </form>
+    </div>
+
+    <div th:if="${result != null}" class="card">
+        <div class="results-header">
+            <div>
+                <h2 style="margin:0 0 6px">Summary</h2>
+                <p class="muted">Click a card to open just that result section below.</p>
+            </div>
+            <div class="section-switcher">
+                <button type="button" class="switch-button active" data-target="mergedSection">Merged</button>
+                <button type="button" class="switch-button" data-target="missingFirstSection">Missing in file 1</button>
+                <button type="button" class="switch-button" data-target="missingSecondSection">Missing in file 2</button>
+                <button type="button" class="switch-button" data-target="differentSection">Different values</button>
+            </div>
+        </div>
+        <div class="stats">
+            <div class="stat active" data-target="mergedSection"><div class="stat-value" th:text="${result.firstCount}"></div><div class="stat-label">Keys in file 1</div></div>
+            <div class="stat active" data-target="mergedSection"><div class="stat-value" th:text="${result.secondCount}"></div><div class="stat-label">Keys in file 2</div></div>
+            <div class="stat" data-target="missingFirstSection"><div class="stat-value" th:text="${result.missingInFirstCount}"></div><div class="stat-label">Missing in file 1</div></div>
+            <div class="stat" data-target="missingSecondSection"><div class="stat-value" th:text="${result.missingInSecondCount}"></div><div class="stat-label">Missing in file 2</div></div>
+            <div class="stat" data-target="differentSection"><div class="stat-value" th:text="${result.differentCount}"></div><div class="stat-label">Different values</div></div>
+        </div>
+    </div>
+
+    <div th:if="${result != null}" class="card section-card active" id="mergedSection">
+        <div class="section-head">
+            <div>
+                <h2>Merged result</h2>
+                <div class="muted">Uses the selected merge strategy. You can also tweak values inline before downloading.</div>
+            </div>
+            <div class="merged-actions">
+                <div class="mini-field">
+                    <label for="mergedFormat">Format</label>
+                    <select id="mergedFormat" onchange="updateFormatDescription('mergedFormat','mergedFormatDesc')">
+                        <option th:each="format : ${exportFormats}" th:value="${format.name()}" th:text="${format.label}" th:attr="data-description=${format.description}"></option>
+                    </select>
+                    <div id="mergedFormatDesc" class="format-desc"></div>
+                </div>
+                <div class="merged-action-buttons">
+                    <button class="secondary" type="button" onclick="resetMergedEdits()">Reset edits</button>
+                    <button class="secondary" type="button" onclick="downloadEditedMerged()">Download edited result</button>
+                </div>
+            </div>
+        </div>
+        
+        <form id="mergedDownloadForm" method="post" action="/download/merged/TSV/edited">
+            <div id="mergedHiddenFields"></div>
+        </form>
+        <div class="table-wrap">
+            <table class="merged-table">
+                <thead><tr><th>Key</th><th>Value</th></tr></thead>
+                <tbody>
+                <tr th:each="row : ${result.mergedRows}" class="merged-row">
+                    <td><pre th:text="${row.key}"></pre></td>
+                    <td>
+                        <div class="editable-shell" th:attr="data-key=${row.key}">
+                            <div class="merged-value-head">
+                                <button class="row-remove-button" type="button" title="Remove row from merged result" aria-label="Remove row from merged result" onclick="removeMergedRow(event, this)">×</button>
+                            </div>
+                            <div class="editable-status">
+                                <span class="edit-badge">Edited</span>
+                            </div>
+                            <div class="editable-display" th:text="${row.value}"></div>
+                            <div class="editable-diff-preview"></div>
+                            <input class="editable-input" type="text" th:value="${row.value}">
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div th:if="${result != null}" class="card section-card" id="missingFirstSection">
+        <div class="section-head">
+            <div>
+                <h2>Missing in file 1</h2>
+                <div class="muted">Keys found in file 2 but not in file 1.</div>
+            </div>
+            <div class="export-box">
+                <div class="mini-field">
+                    <label for="mis1Format">Format</label>
+                    <select id="mis1Format" onchange="updateFormatDescription('mis1Format','mis1FormatDesc')">
+                        <option th:each="format : ${exportFormats}" th:value="${format.name()}" th:text="${format.label}" th:attr="data-description=${format.description}"></option>
+                    </select>
+                    <div id="mis1FormatDesc" class="format-desc"></div>
+                </div>
+                <button class="secondary" type="button" onclick="downloadSection('missing-in-first', 'mis1Format')">Download</button>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Key</th><th>Value</th></tr></thead>
+                <tbody>
+                <tr th:each="row : ${result.missingInFirstRows}">
+                    <td><pre th:text="${row.key}"></pre></td>
+                    <td><pre th:text="${row.value}"></pre></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div th:if="${result != null}" class="card section-card" id="missingSecondSection">
+        <div class="section-head">
+            <div>
+                <h2>Missing in file 2</h2>
+                <div class="muted">Keys found in file 1 but not in file 2.</div>
+            </div>
+            <div class="export-box">
+                <div class="mini-field">
+                    <label for="mis2Format">Format</label>
+                    <select id="mis2Format" onchange="updateFormatDescription('mis2Format','mis2FormatDesc')">
+                        <option th:each="format : ${exportFormats}" th:value="${format.name()}" th:text="${format.label}" th:attr="data-description=${format.description}"></option>
+                    </select>
+                    <div id="mis2FormatDesc" class="format-desc"></div>
+                </div>
+                <button class="secondary" type="button" onclick="downloadSection('missing-in-second', 'mis2Format')">Download</button>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Key</th><th>Value</th></tr></thead>
+                <tbody>
+                <tr th:each="row : ${result.missingInSecondRows}">
+                    <td><pre th:text="${row.key}"></pre></td>
+                    <td><pre th:text="${row.value}"></pre></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div th:if="${result != null}" class="card section-card" id="differentSection">
+        <div class="section-head">
+            <div>
+                <h2>Different values</h2>
+                <div class="muted">Switch between the readable diff and the raw 3-column view here.</div>
+            </div>
+            <div class="export-box diff-export">
+                <div class="mini-field">
+                    <label for="diffPreviewMode">Preview</label>
+                    <select id="diffPreviewMode" onchange="toggleDifferentPreview()">
+                        <option th:each="mode : ${differentViewModes}" th:value="${mode.name()}" th:text="${mode.label}" th:selected="${mode.name() == 'PRETTY_DIFF_TEXT'}" th:attr="data-description=${mode.description}"></option>
+                    </select>
+                    <div id="diffPreviewDesc" class="format-desc"></div>
+                </div>
+                <div class="mini-field">
+                    <label for="diffFormat">Format</label>
+                    <select id="diffFormat" onchange="updateFormatDescription('diffFormat','diffFormatDesc')">
+                        <option th:each="format : ${exportFormats}" th:value="${format.name()}" th:text="${format.label}" th:attr="data-description=${format.description}"></option>
+                    </select>
+                    <div id="diffFormatDesc" class="format-desc"></div>
+                </div>
+                <button class="secondary" type="button" onclick="downloadDifferent()">Download</button>
+            </div>
+        </div>
+
+        <div class="table-wrap diff-preview-table active" id="prettyDiffTable">
+            <table>
+                <thead><tr><th>Key</th><th>Pretty diff</th><th>Severity</th><th>Reason</th></tr></thead>
+                <tbody>
+                <tr th:each="row : ${result.differentRows}">
+                    <td><pre th:text="${row.key}"></pre></td>
+                    <td>
+                        <div class="pretty-pair">
+                            <div class="pretty-line">
+                                <span class="pretty-label">File 1</span>
+                                <span class="pretty-content" th:utext="${row.firstDiffHtml}"></span>
+                            </div>
+                            <div class="pretty-line">
+                                <span class="pretty-label">File 2</span>
+                                <span class="pretty-content" th:utext="${row.secondDiffHtml}"></span>
+                            </div>
+                        </div>
+                    </td>
+                    <td th:classappend="'severity-' + ${row.severity.name()}" th:text="${row.severity.name()}"></td>
+                    <td><pre th:text="${row.severityReason}"></pre></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-wrap diff-preview-table" id="threeColumnsTable">
+            <table>
+                <thead><tr><th>Key</th><th>File 1</th><th>File 2</th><th>Severity</th><th>Reason</th></tr></thead>
+                <tbody>
+                <tr th:each="row : ${result.differentRows}">
+                    <td><pre th:text="${row.key}"></pre></td>
+                    <td><pre th:text="${row.firstValue}"></pre></td>
+                    <td><pre th:text="${row.secondValue}"></pre></td>
+                    <td th:classappend="'severity-' + ${row.severity.name()}" th:text="${row.severity.name()}"></td>
+                    <td><pre th:text="${row.severityReason}"></pre></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+
+    const initialRules = /*[[${displayRules}]]*/ [];
+
+    function parseSerializedRules(serialized) {
+        if (!serialized || !serialized.trim()) return [];
+        return serialized.split(/\r?\n/).map(line => {
+            const parts = line.split('\t');
+            return {
+                mode: parts[0] || 'REMOVE',
+                pattern: parts[1] || '',
+                replacement: parts.slice(2).join('\t') || ''
+            };
+        }).filter(rule => rule.pattern);
+    }
+
+    function escapeHtml(value) {
+        return (value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function ruleRowTemplate(rule = {}) {
+        const mode = rule.mode || 'REMOVE';
+        const pattern = rule.pattern || '';
+        const replacement = rule.replacement || '';
+        return `
+            <div class="rule-row ${mode === 'REPLACE' ? 'mode-replace' : 'mode-remove'}">
+                <select class="rule-mode" onchange="toggleRuleReplacement(this)">
+                    <option value="REMOVE" ${mode === 'REMOVE' ? 'selected' : ''}>Remove</option>
+                    <option value="REPLACE" ${mode === 'REPLACE' ? 'selected' : ''}>Replace</option>
+                </select>
+                <div class="pattern-cell"><input class="rule-pattern" type="text" placeholder="Regex pattern" value="${escapeHtml(pattern)}"></div>
+                <div class="replacement-cell ${mode === 'REMOVE' ? 'hidden' : ''}">
+                    <input class="rule-replacement" type="text" placeholder="Replacement" value="${escapeHtml(replacement)}">
+                </div>
+                <div class="action-cell">
+                    <button class="ghost-button" type="button" onclick="removeRuleRow(this)" aria-label="Remove rule" title="Remove rule">×</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderInitialRules() {
+        const list = document.getElementById('rulesList');
+        const hiddenField = document.getElementById('transformationRules');
+        if (!list || !hiddenField) return;
+        const serialized = hiddenField.value || hiddenField.textContent || '';
+        const rules = parseSerializedRules(serialized);
+        if (rules.length === 0 && Array.isArray(initialRules) && initialRules.length > 0) {
+            list.innerHTML = initialRules.map(ruleRowTemplate).join('');
+        } else if (rules.length > 0) {
+            list.innerHTML = rules.map(ruleRowTemplate).join('');
+        } else {
+            list.innerHTML = '';
+        }
+        syncRules();
+        toggleRulesEmptyState();
+    }
+
+    function addRuleRow() {
+        const list = document.getElementById('rulesList');
+        if (!list) return;
+        list.insertAdjacentHTML('beforeend', ruleRowTemplate());
+        bindRuleInputs();
+        toggleRulesEmptyState();
+        syncRules();
+    }
+
+    function removeRuleRow(button) {
+        const row = button.closest('.rule-row');
+        if (row) row.remove();
+        toggleRulesEmptyState();
+        syncRules();
+    }
+
+    function toggleRuleReplacement(select) {
+        const row = select.closest('.rule-row');
+        if (!row) return;
+        const isReplace = select.value === 'REPLACE';
+        row.classList.toggle('mode-replace', isReplace);
+        row.classList.toggle('mode-remove', !isReplace);
+        const replacementCell = row.querySelector('.replacement-cell');
+        if (replacementCell) {
+            replacementCell.classList.toggle('hidden', !isReplace);
+        }
+        syncRules();
+    }
+
+    function toggleRulesEmptyState() {
+        const list = document.getElementById('rulesList');
+        if (!list) return;
+    }
+
+    function bindRuleInputs() {
+        const list = document.getElementById('rulesList');
+        if (!list || list.dataset.bound === 'true') return;
+        list.addEventListener('input', syncRules);
+        list.addEventListener('change', syncRules);
+        list.dataset.bound = 'true';
+    }
+
+    function syncRules() {
+        const rows = Array.from(document.querySelectorAll('.rule-row'));
+        const hiddenField = document.getElementById('transformationRules');
+        if (!hiddenField) return;
+        const serialized = rows.map(row => {
+            const mode = row.querySelector('.rule-mode')?.value || 'REMOVE';
+            const pattern = row.querySelector('.rule-pattern')?.value || '';
+            const replacement = row.querySelector('.rule-replacement')?.value || '';
+            if (!pattern.trim()) return '';
+            return [mode, pattern, replacement].join('\t');
+        }).filter(Boolean).join('\n');
+        hiddenField.value = serialized;
+    }
+
+
+    function bindCompareFormSync() {
+        const form = document.querySelector('form[action="/compare"]');
+        if (!form || form.dataset.rulesBound === 'true') return;
+        form.addEventListener('submit', () => {
+            syncRules();
+        });
+        form.dataset.rulesBound = 'true';
+    }
+
+    function tokenizeForDiff(value) {
+        return (value || '').match(/(\w+|\s+|[^\w\s])/g) || [];
+    }
+
+    function buildInlineDiff(left, right) {
+        const leftTokens = tokenizeForDiff(left);
+        const rightTokens = tokenizeForDiff(right);
+        const dp = Array.from({length: leftTokens.length + 1}, () => Array(rightTokens.length + 1).fill(0));
+
+        for (let i = leftTokens.length - 1; i >= 0; i--) {
+            for (let j = rightTokens.length - 1; j >= 0; j--) {
+                dp[i][j] = leftTokens[i] === rightTokens[j]
+                    ? dp[i + 1][j + 1] + 1
+                    : Math.max(dp[i + 1][j], dp[i][j + 1]);
+            }
+        }
+
+        let i = 0;
+        let j = 0;
+        let leftHtml = '';
+        let rightHtml = '';
+
+        while (i < leftTokens.length && j < rightTokens.length) {
+            if (leftTokens[i] === rightTokens[j]) {
+                const escaped = escapeHtml(leftTokens[i]);
+                leftHtml += escaped;
+                rightHtml += escaped;
+                i++;
+                j++;
+            } else if (dp[i + 1][j] >= dp[i][j + 1]) {
+                leftHtml += '<span class="diff-removed">' + escapeHtml(leftTokens[i]) + '</span>';
+                i++;
+            } else {
+                rightHtml += '<span class="diff-added">' + escapeHtml(rightTokens[j]) + '</span>';
+                j++;
+            }
+        }
+
+        while (i < leftTokens.length) {
+            leftHtml += '<span class="diff-removed">' + escapeHtml(leftTokens[i]) + '</span>';
+            i++;
+        }
+        while (j < rightTokens.length) {
+            rightHtml += '<span class="diff-added">' + escapeHtml(rightTokens[j]) + '</span>';
+            j++;
+        }
+
+        return {leftHtml, rightHtml};
+    }
+
+    function renderEditableDiff(shell) {
+        if (!shell) return;
+        const preview = shell.querySelector('.editable-diff-preview');
+        const currentValue = shell.querySelector('.editable-display')?.textContent || '';
+        const initialValue = shell.dataset.initialValue ?? '';
+        if (!preview) return;
+        if (currentValue === initialValue) {
+            preview.innerHTML = '';
+            return;
+        }
+        const diff = buildInlineDiff(initialValue, currentValue);
+        const left = diff.leftHtml && diff.leftHtml.trim() ? diff.leftHtml : '<span class="subtle">Empty</span>';
+        const right = diff.rightHtml && diff.rightHtml.trim() ? diff.rightHtml : '<span class="subtle">Empty</span>';
+        preview.innerHTML = `
+            <div class="pretty-pair">
+                <div class="pretty-line">
+                    <span class="pretty-label">Before</span>
+                    <span class="pretty-content">${left}</span>
+                </div>
+                <div class="pretty-line">
+                    <span class="pretty-label">Edited</span>
+                    <span class="pretty-content">${right}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    function markShellChangedState(shell) {
+        if (!shell) return;
+        const initialValue = shell.dataset.initialValue ?? '';
+        const currentValue = shell.querySelector('.editable-display').textContent || '';
+        const changed = currentValue !== initialValue;
+        shell.classList.remove('changed');
+        shell.classList.toggle('changed-manual', changed);
+        renderEditableDiff(shell);
+    }
+
+    function openEditor(shell) {
+        document.querySelectorAll('.editable-shell.editing').forEach(active => {
+            if (active !== shell) {
+                cancelEditor(active);
+            }
+        });
+        shell.dataset.originalValue = shell.querySelector('.editable-display').textContent;
+        shell.querySelector('.editable-input').value = shell.querySelector('.editable-display').textContent;
+        shell.classList.add('editing');
+        const input = shell.querySelector('.editable-input');
+        input.focus();
+        input.select();
+    }
+
+    function resolveShell(target) {
+        if (!target) return null;
+        return target.classList && target.classList.contains('editable-shell') ? target : target.closest('.editable-shell');
+    }
+
+    function saveEditor(target) {
+        const shell = resolveShell(target);
+        if (!shell) return;
+        const input = shell.querySelector('.editable-input');
+        const display = shell.querySelector('.editable-display');
+        display.textContent = input.value;
+        display.classList.toggle('editable-placeholder', !input.value.trim());
+        shell.classList.remove('editing');
+        markShellChangedState(shell);
+    }
+
+    function cancelEditor(target) {
+        const shell = resolveShell(target);
+        if (!shell) return;
+        const input = shell.querySelector('.editable-input');
+        const originalValue = shell.dataset.originalValue ?? shell.querySelector('.editable-display').textContent;
+        input.value = originalValue;
+        shell.classList.remove('editing');
+    }
+
+    function resetMergedEdits() {
+        document.querySelectorAll('#mergedSection .editable-shell').forEach(shell => {
+            const initialValue = shell.dataset.initialValue ?? '';
+            const display = shell.querySelector('.editable-display');
+            const input = shell.querySelector('.editable-input');
+            display.textContent = initialValue;
+            display.classList.toggle('editable-placeholder', !initialValue.trim());
+            input.value = initialValue;
+            shell.classList.remove('editing');
+            shell.classList.remove('changed');
+            shell.classList.remove('changed-manual');
+            renderEditableDiff(shell);
+            const row = shell.closest('.merged-row');
+            if (row) { row.classList.remove('removed'); row.style.display = ''; }
+        });
+    }
+
+    function attachEditors() {
+        document.querySelectorAll('.editable-shell').forEach(shell => {
+            const display = shell.querySelector('.editable-display');
+            const initialValue = display ? display.textContent : '';
+            shell.dataset.initialValue = initialValue;
+            markShellChangedState(shell);
+            shell.addEventListener('dblclick', (event) => {
+                if (event.target.closest('.row-remove-button')) return;
+                openEditor(shell);
+            });
+            const input = shell.querySelector('.editable-input');
+            if (input) {
+                input.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        saveEditor(shell);
+                    }
+                    if (event.key === 'Escape') {
+                        event.preventDefault();
+                        cancelEditor(shell);
+                    }
+                });
+                input.addEventListener('blur', () => {
+                    if (shell.classList.contains('editing')) {
+                        saveEditor(shell);
+                    }
+                });
+            }
+        });
+    }
+
+    function removeMergedRow(event, button) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        const row = button.closest('.merged-row');
+        if (!row) return;
+        row.classList.add('removed');
+        row.style.display = 'none';
+    }
+
+    function populateMergedHiddenFields() {
+        const container = document.getElementById('mergedHiddenFields');
+        if (!container) return;
+        container.innerHTML = '';
+        document.querySelectorAll('#mergedSection .merged-row').forEach(row => {
+            if (row.classList.contains('removed')) {
+                return;
+            }
+            const shell = row.querySelector('.editable-shell');
+            if (!shell) return;
+            const keyInput = document.createElement('input');
+            keyInput.type = 'hidden';
+            keyInput.name = 'editedKeys';
+            keyInput.value = shell.dataset.key || '';
+            const valueInput = document.createElement('input');
+            valueInput.type = 'hidden';
+            valueInput.name = 'editedValues';
+            valueInput.value = shell.querySelector('.editable-display').textContent || '';
+            container.appendChild(keyInput);
+            container.appendChild(valueInput);
+        });
+    }
+
+    function downloadEditedMerged() {
+        populateMergedHiddenFields();
+        const form = document.getElementById('mergedDownloadForm');
+        const format = document.getElementById('mergedFormat').value;
+        form.action = '/download/merged/' + format + '/edited';
+        form.submit();
+    }
+
+    function bindCustomFilePicker(inputId, statusId) {
+        const input = document.getElementById(inputId);
+        const status = document.getElementById(statusId);
+        const card = document.querySelector('.upload-card[data-input-id="' + inputId + '"]');
+        if (!input || !status || !card) return;
+
+        const openPicker = () => input.click();
+
+        card.addEventListener('click', openPicker);
+        card.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openPicker();
+            }
+        });
+
+        input.addEventListener('change', () => {
+            if (input.files && input.files.length > 0) {
+                status.textContent = input.files[0].name;
+                status.classList.remove('placeholder');
+                status.classList.add('selected');
+                card.classList.add('active');
+            }
+        });
+    }
+
+    function updateFormatDescription(selectId, descId) {
+        const select = document.getElementById(selectId);
+        const desc = document.getElementById(descId);
+        if (!select || !desc) return;
+        const selectedOption = select.options[select.selectedIndex];
+        desc.textContent = selectedOption ? (selectedOption.dataset.description || '') : '';
+    }
+
+    function downloadSection(section, selectId) {
+        const format = document.getElementById(selectId).value;
+        window.location.href = '/download/' + section + '/' + format;
+    }
+
+    function downloadDifferent() {
+        const format = document.getElementById('diffFormat').value;
+        const mode = document.getElementById('diffPreviewMode').value;
+        window.location.href = '/download/different/' + format + '?differentViewMode=' + mode;
+    }
+
+    function toggleDifferentPreview() {
+        const select = document.getElementById('diffPreviewMode');
+        const desc = document.getElementById('diffPreviewDesc');
+        if (!select) return;
+        const mode = select.value;
+        const pretty = document.getElementById('prettyDiffTable');
+        const three = document.getElementById('threeColumnsTable');
+        if (pretty) pretty.classList.toggle('active', mode === 'PRETTY_DIFF_TEXT');
+        if (three) three.classList.toggle('active', mode === 'THREE_COLUMNS');
+        const selectedOption = select.options[select.selectedIndex];
+        if (desc && selectedOption) {
+            desc.textContent = selectedOption.dataset.description || '';
+        }
+    }
+
+    function activateSection(targetId) {
+        document.querySelectorAll('.section-card').forEach(card => {
+            card.classList.toggle('active', card.id === targetId);
+        });
+        document.querySelectorAll('.stat[data-target]').forEach(card => {
+            card.classList.toggle('active', card.dataset.target === targetId);
+        });
+        document.querySelectorAll('.switch-button[data-target]').forEach(button => {
+            button.classList.toggle('active', button.dataset.target === targetId);
+        });
+
+        const target = document.getElementById(targetId);
+        if (target) {
+            target.scrollIntoView({behavior: 'smooth', block: 'start'});
+        }
+    }
+
+    document.querySelectorAll('.stat[data-target], .switch-button[data-target]').forEach(el => {
+        el.addEventListener('click', () => activateSection(el.dataset.target));
+    });
+
+    renderInitialRules();
+    document.addEventListener('input', (event) => {
+        if (event.target.closest('.rule-row')) {
+            syncRules();
+        }
+    });
+    document.addEventListener('change', (event) => {
+        if (event.target.closest('.rule-row')) {
+            syncRules();
+        }
+    });
+    document.querySelector('form[action="/compare"]')?.addEventListener('submit', () => {
+        syncRules();
+    });
+    attachEditors();
+    activateSection('mergedSection');
+    bindCustomFilePicker('file1', 'file1Status');
+    bindCustomFilePicker('file2', 'file2Status');
+    ['mergedFormat', 'mis1Format', 'mis2Format', 'diffFormat'].forEach(id => updateFormatDescription(id, id + 'Desc'));
+    toggleDifferentPreview();
+</script>
+</body>
+</html>
