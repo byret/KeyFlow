@@ -21,10 +21,14 @@ public class MessageCompareService {
         this.diffService = diffService;
     }
 
-    public ComparisonResult compare(byte[] firstFileContent, byte[] secondFileContent, CompareOptions options) throws IOException {
+    public ComparisonResult compare(byte[] firstFileContent,
+                                    String firstFileName,
+                                    byte[] secondFileContent,
+                                    String secondFileName,
+                                    CompareOptions options) throws IOException {
         List<String> ignoredTerms = parseIgnoredTerms(options.mergeIgnoreTerms());
-        Map<String, String> first = loadMessages(firstFileContent, options.prefix(), ignoredTerms);
-        Map<String, String> second = loadMessages(secondFileContent, options.prefix(), ignoredTerms);
+        Map<String, String> first = loadMessages(firstFileContent, firstFileName, options.prefix(), ignoredTerms);
+        Map<String, String> second = loadMessages(secondFileContent, secondFileName, options.prefix(), ignoredTerms);
 
         List<ComparisonRow> missingInSecond = first.keySet().stream()
                 .filter(key -> !second.containsKey(key))
@@ -113,7 +117,11 @@ public class MessageCompareService {
         return textNormalizationService.sanitizeForOutput(value, options.transformationRules());
     }
 
-    private Map<String, String> loadMessages(byte[] content, String prefix, List<String> ignoredTerms) throws IOException {
+    private Map<String, String> loadMessages(byte[] content, String fileName, String prefix, List<String> ignoredTerms) throws IOException {
+        if (isPropertiesFile(fileName)) {
+            return loadProperties(content, prefix, ignoredTerms);
+        }
+
         Map<String, String> result = new TreeMap<>();
 
         try (BufferedReader reader = new BufferedReader(
@@ -127,6 +135,30 @@ public class MessageCompareService {
             }
         }
         return result;
+    }
+
+    private Map<String, String> loadProperties(byte[] content, String prefix, List<String> ignoredTerms) throws IOException {
+        Properties properties = new Properties();
+        try (InputStreamReader reader = new InputStreamReader(new ByteArrayInputStream(content), StandardCharsets.UTF_8)) {
+            properties.load(reader);
+        }
+
+        Map<String, String> result = new TreeMap<>();
+        for (String key : properties.stringPropertyNames()) {
+            if (prefix != null && !prefix.isBlank() && !key.startsWith(prefix)) {
+                continue;
+            }
+            String value = properties.getProperty(key, "");
+            if (shouldIgnoreEntry(key, value, ignoredTerms)) {
+                continue;
+            }
+            result.put(key, value);
+        }
+        return result;
+    }
+
+    private boolean isPropertiesFile(String fileName) {
+        return fileName != null && fileName.toLowerCase(Locale.ROOT).endsWith(".properties");
     }
 
     private ParsedLine parseLine(String line, String prefix, List<String> ignoredTerms) {
@@ -180,6 +212,14 @@ public class MessageCompareService {
             return false;
         }
         String lowered = line.toLowerCase(Locale.ROOT);
+        return ignoredTerms.stream().anyMatch(lowered::contains);
+    }
+
+    private boolean shouldIgnoreEntry(String key, String value, List<String> ignoredTerms) {
+        if (ignoredTerms == null || ignoredTerms.isEmpty()) {
+            return false;
+        }
+        String lowered = (key + "=" + value).toLowerCase(Locale.ROOT);
         return ignoredTerms.stream().anyMatch(lowered::contains);
     }
 

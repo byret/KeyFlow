@@ -62,7 +62,7 @@ public class WebController {
             }
 
             CompareOptions options = new CompareOptions(prefix, transformationRules, mergeIgnoreTerms, ignoreWhitespace, ignoreCase, mergeStrategy);
-            ComparisonResult result = messageCompareService.compare(storedFile1.content(), storedFile2.content(), options);
+            ComparisonResult result = messageCompareService.compare(storedFile1.content(), storedFile1.fileName(), storedFile2.content(), storedFile2.fileName(), options);
 
             session.setAttribute(SESSION_INPUTS_KEY, new StoredInputs(storedFile1, storedFile2));
             session.setAttribute(SESSION_RESULT_KEY, result);
