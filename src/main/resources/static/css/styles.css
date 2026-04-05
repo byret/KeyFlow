@@ -1088,3 +1088,7 @@
             .top-actions { justify-content: stretch; }
         }
     
+
+        @media (max-width: 720px) {
+            .hero-logo { width: min(320px, 72vw); }
+        }
