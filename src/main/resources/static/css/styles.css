@@ -1092,3 +1092,88 @@
         @media (max-width: 720px) {
             .hero-logo { width: min(320px, 72vw); }
         }
+
+        [hidden] { display: none !important; }
+        button.stat {
+            color: inherit;
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
+        }
+        .eyebrow,
+        .section-kicker {
+            position: relative;
+            z-index: 1;
+            color: var(--accent-2);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+        }
+        .eyebrow { margin-bottom: 12px; }
+        .section-kicker { margin-bottom: 8px; }
+        .hero-badges { position: relative; z-index: 1; margin-top: 18px; }
+        .card h2 { margin: 0 0 8px; }
+        .muted { color: var(--muted); line-height: 1.6; }
+        .file-sub { color: var(--muted); font-size: 13px; }
+        .upload-card.dragging {
+            border-color: var(--accent-2);
+            transform: translateY(-3px) scale(1.01);
+        }
+        .option-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .empty-state {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            align-items: center;
+            gap: 24px;
+            min-height: 160px;
+        }
+        .empty-state h2 { margin: 4px 0; }
+        .empty-state p { margin: 0; }
+        .empty-orbit {
+            width: 82px;
+            height: 82px;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(36, 225, 255, .28);
+            border-radius: 50%;
+            animation: orbitPulse 3s ease-in-out infinite;
+        }
+        .empty-orbit::before,
+        .empty-orbit span {
+            content: '';
+            display: block;
+            border-radius: 50%;
+        }
+        .empty-orbit::before {
+            width: 48px;
+            height: 48px;
+            border: 1px solid rgba(155, 92, 255, .42);
+        }
+        .empty-orbit span {
+            position: absolute;
+            width: 9px;
+            height: 9px;
+            background: var(--accent-2);
+            box-shadow: 0 0 20px rgba(36, 225, 255, .55);
+        }
+        .result-actions { margin-top: 0; align-items: center; }
+        .result-actions select { min-width: 140px; }
+        .table-empty { color: var(--muted); text-align: center; padding: 36px; }
+        code { color: #dbeafe; }
+        @keyframes orbitPulse {
+            0%, 100% { transform: scale(.96); opacity: .72; }
+            50% { transform: scale(1.04); opacity: 1; }
+        }
+        @media (max-width: 720px) {
+            .empty-state { grid-template-columns: 1fr; }
+            .empty-orbit { width: 64px; height: 64px; }
+            .result-actions { width: 100%; }
+            .result-actions select,
+            .result-actions button { width: 100%; }
+        }
